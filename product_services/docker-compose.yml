@@ -1,0 +1,86 @@
+version: '3.9'
+
+services:
+    postgres:
+      image: postgres
+      container_name: postgresql
+      restart: on-failure
+      environment: 
+        - POSTGRES_DB=${PRODUCT_DB_NAME}
+        - POSTGRES_USER=${PRODUCT_DB_USER}
+        - POSTGRES_PASSWORD=${PRODUCT_DB_PASSWORD}
+      networks: 
+        - main
+      ports: 
+        - "5432:5432"
+      volumes:
+        - ./data/postgres:/var/lib/postgresql/data 
+         
+    pgadmin:
+      image: dpage/pgadmin4
+      container_name: pgadmin
+      restart: on-failure
+      environment:
+        - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+        - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+      ports:
+        - "5050:80"
+      volumes:
+        - ./data/pgadmin:/var/lib/pgadmin/data
+      networks:
+        - main
+
+        
+    product_services:
+      container_name: product_services
+      build: .
+      command: sh -c "
+                  python manage.py makemigrations &&
+                  python manage.py migrate && 
+                  python manage.py collectstatic --no-input && 
+                  gunicorn -k gevent --chdir config config.wsgi:application -b 0.0.0.0:8002"
+      restart: on-failure
+      depends_on: 
+        - postgres
+      expose:
+        - "8002"
+      networks:
+        - main
+      volumes: 
+        - .:/product_services/
+        - ./static:/product_services/static
+        - ./media:/product_services/media
+
+
+    nginx:
+      container_name: nginx
+      command: nginx -g 'daemon off;'
+      image: nginx
+      restart: on-failure
+      depends_on:
+        - product_services
+      networks: 
+        - main
+      ports: 
+        - "80:80"
+      volumes: 
+        - ./nginx.conf:/etc/nginx/nginx.conf
+        - ./media:/product_services/media
+        - ./static:/product_services/static
+
+
+
+networks: 
+  main:
+    external: true
+
+volumes: 
+
+  static_product:
+    external: true
+
+  media: 
+    external: true
+    
+  data:
+    external: true

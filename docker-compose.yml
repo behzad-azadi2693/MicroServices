@@ -1,0 +1,137 @@
+version: '3.9'
+
+services:
+    postgres:
+      image: postgres
+      container_name: posgresql
+      restart: on-failure
+      environment: 
+        - POSTGRES_USER=postgres
+        - POSTGRES_PASSWORD=${USER_DB_PASSWORD}
+        - POSTGRES_MULTIPLE_DATABASES=${POSTGRES_MULTIPLE_DATABASES}
+      networks: 
+        - main
+      ports: 
+        - "5432:5432"
+      volumes:
+        - ./create_database.sh:/docker-entrypoint-initdb.d/create_database.sh
+        - ./data/postgres:/var/lib/postgresql/data 
+
+
+    pgadmin:
+      image: dpage/pgadmin4
+      container_name: pgadmin
+      restart: on-failure
+      environment:
+        - PGADMIN_DEFAULT_EMAIL=a@a.com
+        - PGADMIN_DEFAULT_PASSWORD=a
+      ports:
+        - "5050:80"
+      volumes:
+        - ./data/pgadmin:/var/lib/pgadmin/data
+      networks:
+        - main
+
+    user_services:
+      container_name: user_services
+      build:
+        context: ./user_services/
+        dockerfile: Dockerfile
+      command: sh -c "
+                  python ./user_services/manage.py makemigrations &&
+                  python ./user_services/manage.py migrate && 
+                  python ./user_services/manage.py collectstatic --no-input && 
+                  gunicorn -k gevent --chdir user_services user_services.config.wsgi:application -b 0.0.0.0:8001"
+      restart: on-failure
+      depends_on: 
+        - postgres
+      expose:
+        - "8001"
+      networks:
+        - main
+      volumes: 
+        - .:/user_services/
+        - ./user_services/static:/user_services/static
+
+        
+    product_services:
+      container_name: product_services
+      build:
+        context: ./product_services/
+        dockerfile: Dockerfile
+      command: sh -c "
+                  python ./product_services/manage.py makemigrations &&
+                  python ./product_services/manage.py migrate && 
+                  python ./product_services/manage.py collectstatic --no-input && 
+                  gunicorn -k gevent --chdir product_services product_services.config.wsgi:application -b 0.0.0.0:8002"
+      restart: on-failure
+      depends_on: 
+        - postgres
+      expose:
+        - "8002"
+      networks:
+        - main
+      volumes: 
+        - .:/product_services/
+        - ./product_services/static:/product_services/static
+        - ./product_services/media:/product_services/media
+
+
+    order_services:
+      container_name: order_services
+      build:
+        context: ./order_services/
+        dockerfile: Dockerfile
+      command: sh -c "
+                  python ./order_services/manage.py makemigrations &&
+                  python ./order_services/manage.py migrate && 
+                  python ./order_services/manage.py collectstatic --no-input && 
+                  gunicorn -k gevent order_services.config.wsgi:application -b 0.0.0.0:8003"
+      restart: on-failure
+      depends_on: 
+        - postgres
+      ports: 
+        - "8003"
+      networks:
+        - main
+      volumes: 
+        - .:/order_services/
+        - ./order_services/static:/order_services/static
+
+
+    nginx:
+      container_name: nginx
+      command: nginx -g 'daemon off;'
+      image: nginx
+      restart: on-failure
+      depends_on:
+        - user_services
+      networks: 
+        - main
+      ports: 
+        - "80:80"
+      volumes: 
+        - ./nginx.conf:/etc/nginx/nginx.conf
+        - ./product_services/media:/product_services/media
+        - ./product_services/static:/product_services/static
+        - ./user_services/static:/user_services/static
+        - ./order_services/static:/order_services/static
+        # ./folder_project/folder_static:/host_name/folder_static
+
+
+networks: 
+    main:
+        external: true
+
+volumes: 
+    static_order:
+        external: true
+     
+    static_user:
+        external: true
+     
+    static_product:
+        external: true
+    
+    data:
+        external: true
