@@ -26,7 +26,7 @@ load_dotenv(os.path.join(BASE_DIR/'.env'))
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('SECRET_KEY') == 'True'
+DEBUG = os.getenv('SECRET_KEY')
 
 
 if DEBUG:
@@ -43,6 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    #3d
+    'rest_framework',
+    #local
+    'user_register.apps.UserRegisterConfig',
 ]
 
 MIDDLEWARE = [
@@ -84,7 +88,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME':  os.getenv('USER_DB_NAME'),
         'USER':  os.getenv('USER_DB_USER'),
-        'HOST':  'postgres',
+        'HOST':  'localhost',
         'PORT':  5432,
         'PASSWORD': os.getenv('USER_DB_PASSWORD'),
     }
@@ -132,3 +136,8 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'static/')
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+AUTH_USER_MODEL = 'user_register.User'
+
+NUMBER_FOR_SMS = os.getenv('NUMBER_FOR_SMS')

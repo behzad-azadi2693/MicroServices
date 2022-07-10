@@ -15,3 +15,4 @@ sqlparse==0.4.2
 urllib3==1.26.9
 zope.event==4.5.0
 zope.interface==5.4.0
+kavenegar==1.1.2
