@@ -18,8 +18,9 @@ zope.event==4.5.0
 zope.interface==5.4.0
 
 
-docker rm -f postgres nginx user product order
-docker network rm microservice_main
-docker volume rm microservice_data microservice_static_order microservice_static_product microservice_static_user
-sudo rm -rf data static_order static_product static_user media
 
+docker network create main   
+docker volume create --name=data
+docker volume create --name=static_product
+docker volume create --name=static_order  
+docker volume create --name=static_user  
