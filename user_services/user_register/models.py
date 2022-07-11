@@ -1,8 +1,10 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
-
+import jwt
+from django.conf import settings
 # Create your models here.
+
 
 class  MyUserManager(BaseUserManager):
     def create_user(self, phone_number, password):
@@ -26,8 +28,7 @@ class User(AbstractBaseUser,PermissionsMixin):
     otp = models.PositiveIntegerField(null=True, blank=True)
     otp_create_time = models.DateTimeField(auto_now=True, null=True, blank=True)
     
-
-    is_active = models.BooleanField(default=True, verbose_name="user is active")
+    is_active = models.BooleanField(default=False, verbose_name="user is active")
     is_admin = models.BooleanField(default=False, verbose_name="user is admin")
     
     objects=MyUserManager()
@@ -40,8 +41,6 @@ class User(AbstractBaseUser,PermissionsMixin):
     def __str__(self) -> str:
         return self.phone_number
 
-    
-
     def has_perm(self, perm, obj=None):
         return True
 
@@ -52,3 +51,10 @@ class User(AbstractBaseUser,PermissionsMixin):
     def is_staff(self):
         return self.is_admin
 
+    @property
+    def token(self):
+        token = jwt.encode({'phone_number': self.phone_number, 'id': self.id, 'exp': self.otp_create_time}, 
+                           settings.SECRET_KEY, 
+                           algorithm='HS256'
+                        )
+        return token
