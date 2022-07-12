@@ -141,3 +141,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'user_register.User'
 
 NUMBER_FOR_SMS = os.getenv('NUMBER_FOR_SMS')
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'user_register.JWT.JWTAuthentication',
+    ]
+}
+
+
+AUTHENTICATION_BACKEND = (
+    'user_register.authentiacte.PhoneLoginBackend',
+    'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+
+)

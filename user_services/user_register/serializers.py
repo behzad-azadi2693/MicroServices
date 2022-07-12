@@ -29,3 +29,9 @@ class UserTokenSerializer(serializers.ModelSerializer):
         fields = ('phone_number','id','token')
 
         read_only_fields = ['phone_number','id','token']
+
+
+class UserDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = ('id', 'phone_number', 'is_active', 'is_admin')

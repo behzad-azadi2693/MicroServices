@@ -1,14 +1,14 @@
 from django.shortcuts import render, HttpResponse
-from rest_framework.generics import CreateAPIView, GenericAPIView
+from rest_framework.generics import CreateAPIView, GenericAPIView, RetrieveAPIView
 from django.contrib.auth import get_user_model
 from random import randint
 from rest_framework.response import Response
 from .utils import sms_send
 from rest_framework import status
 from .permissions import CheckSessionForNumbser
-from .serializers import UserRegisterSerializer, UserLoginSerializer, UserTokenSerializer
+from .serializers import UserRegisterSerializer, UserLoginSerializer, UserTokenSerializer, UserDetailSerializer
 from django.contrib.auth import authenticate
-
+from rest_framework.permissions import IsAuthenticated
 # Create your views here.
 
 
@@ -59,3 +59,13 @@ class UserLoginView(GenericAPIView):
             
         return Response({"message":"please check your smms and otp"}, status=status.HTTP_401_UNAUTHORIZED)
         
+
+class UserDetailView(RetrieveAPIView):
+    model = get_user_model()
+    serializer_class = UserDetailSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self):
+        user = get_user_model().objects.get(id=self.request.user.id)
+
+        return user

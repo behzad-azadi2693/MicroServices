@@ -3,6 +3,7 @@ from django.core.validators import RegexValidator
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 import jwt
 from django.conf import settings
+from datetime import datetime, timedelta
 # Create your models here.
 
 
@@ -53,7 +54,7 @@ class User(AbstractBaseUser,PermissionsMixin):
 
     @property
     def token(self):
-        token = jwt.encode({'phone_number': self.phone_number, 'id': self.id, 'exp': self.otp_create_time}, 
+        token = jwt.encode({'phone_number': self.phone_number, 'id': self.id, 'active':self.is_active, 'exp': datetime.now() + timedelta(days=15)}, 
                            settings.SECRET_KEY, 
                            algorithm='HS256'
                         )
