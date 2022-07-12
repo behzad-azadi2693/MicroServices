@@ -153,5 +153,4 @@ AUTHENTICATION_BACKEND = (
     'user_register.authentiacte.PhoneLoginBackend',
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
-
 )

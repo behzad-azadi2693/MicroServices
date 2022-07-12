@@ -26,7 +26,7 @@ class  MyUserManager(BaseUserManager):
 class User(AbstractBaseUser,PermissionsMixin):
     phone_regex = RegexValidator(regex=r'^\+?1?\d{11,11}$', message="Phone number must be entered in the format: '+999999999'. Up to 11 digits allowed.")
     phone_number = models.CharField(validators=[phone_regex], max_length=11,unique=True, verbose_name="your phone number") # validators should be a list
-    otp = models.PositiveIntegerField(null=True, blank=True)
+    otp = models.CharField(max_length=500, null=True, blank=True)
     otp_create_time = models.DateTimeField(auto_now=True, null=True, blank=True)
     
     is_active = models.BooleanField(default=False, verbose_name="user is active")

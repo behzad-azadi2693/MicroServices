@@ -15,7 +15,7 @@ class PhoneLoginBackend(ModelBackend):
     
     def get_user(self, user_id):
         try:
-            return User.objects.get(id=user_id)
+            return get_user_model().objects.get(id=user_id)
         
         except User.DosNotExist:
             return None
